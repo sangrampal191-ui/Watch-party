@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Watch Party 🎬</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: Arial, sans-serif;
+      background: #10111b;
+      color: white;
+    }
+
+    .app {
+      max-width: 600px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #a78bfa;
+    }
+
+    .card {
+      background: #1c1d2b;
+      padding: 16px;
+      border-radius: 14px;
+      margin-bottom: 16px;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 13px;
+      margin: 6px 0;
+      border: none;
+      border-radius: 9px;
+      font-size: 16px;
+    }
+
+    input {
+      background: #292a3c;
+      color: white;
+      border: 1px solid #44455c;
+    }
+
+    button {
+      background: #8b5cf6;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:active {
+      opacity: 0.8;
+    }
+
+    .secondary {
+      background: #34354a;
+    }
+
+    video {
+      width: 100%;
+      display: block;
+      background: black;
+      border-radius: 10px;
+      margin-top: 12px;
+    }
+
+    #status {
+      color: #fbbf24;
+      overflow-wrap: anywhere;
+    }
+
+    #messages {
+      height: 220px;
+      overflow-y: auto;
+      background: #11121d;
+      padding: 10px;
+      border-radius: 8px;
+      overflow-wrap: anywhere;
+    }
+
+    .message {
+      padding: 8px;
+      margin-bottom: 8px;
+      background: #292a3c;
+      border-radius: 8px;
+    }
+
+    .system {
+      color: #a78bfa;
+      font-size: 13px;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .row input {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .row button {
+      width: auto;
+      min-width: 80px;
+    }
+
+    small {
+      color: #c1c2d4;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <h1>🎬 Watch Party</h1>
+
+    <div class="card">
+      <h3>1. पार्टी से जुड़ें</h3>
+
+      <input id="name" placeholder="आपका नाम" maxlength="30">
+
+      <input id="room" placeholder="Room ID (जैसे dost123)"
+        maxlength="60" value="dost123">
+
+      <button id="connectBtn">Connect करें</button>
+
+      <p id="status">पहले Connect करें।</p>
+
+      <small>
+        आप और आपके दोस्त को एक ही Room ID डालनी है।
+        दोनों फोन इंटरनेट से जुड़े होने चाहिए।
+      </small>
+    </div>
+
+    <div class="card">
+      <h3>2. वीडियो चलाएँ</h3>
+
+      <input id="videoUrl"
+        placeholder="वीडियो का Direct URL पेस्ट करें">
+
+      <button id="loadBtn">वीडियो लोड करें</button>
+
+      <video id="video" controls playsinline
+        preload="metadata"></video>
+
+      <p>
+        <small>
+          दोनों दोस्तों को एक ही वीडियो URL इस्तेमाल करना होगा।
+          Direct MP4/WebM लिंक सबसे आसान है।
+          YouTube के सामान्य लिंक इस वीडियो प्लेयर में सीधे नहीं चलेंगे।
+        </small>
+      </p>
+
+      <button id="playBtn">▶ Play / Sync</button>
+      <button id="pauseBtn" class="secondary">⏸ Pause / Sync</button>
+
+      <div class="row">
+        <input id="seekTime" type="number" min="0"
+          step="1" placeholder="समय सेकंड में">
+        <button id="seekBtn">Seek</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>3. लाइव चैट 💬</h3>
+
+      <div id="messages"></div>
+
+      <div class="row">
+        <input id="chatInput" placeholder="मैसेज लिखें..."
+          maxlength="1000">
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>कैसे इस्तेमाल करें?</h3>
+      <small>
+        1. दोनों फोन में यही वेबसाइट खोलें।<br>
+        2. दोनों एक ही Room ID डालकर Connect करें।<br>
+        3. दोनों एक ही वीडियो URL लोड करें।<br>
+        4. Play, Pause और Seek बटन इस्तेमाल करें।<br>
+        5. चैट में मैसेज भेजें।<br><br>
+        जरूरी: यह एक क्लाइंट-साइड HTML है। असली रियल-टाइम
+        सिंक और चैट के लिए Firebase और इंटरनेट पर होस्ट की गई
+        वेबसाइट जरूरी है। नीचे Firebase का सेटअप करें।
+      </small>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+
+    import {
+      getDatabase,
+      ref,
+      set,
+      update,
+      onValue,
+      push,
+      onChildAdded,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+
+    /*
+      STEP 1:
+      Firebase Console पर प्रोजेक्ट बनाएँ:
+      https://console.firebase.google.com/
+
+      STEP 2:
+      Project settings में Web App बनाएँ और नीचे
+      firebaseConfig में अपनी असली जानकारी डालें।
+
+      STEP 3:
+      Firebase Realtime Database चालू करें।
+      सुरक्षित Database Rules लगाएँ।
+    */
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.firebasestorage.app",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const $ = id => document.getElementById(id);
+
+    const video = $("video");
+
+    let db = null;
+    let roomRef = null;
+    let chatRef = null;
+    let syncListener = null;
+    let chatListener = null;
+    let connected = false;
+    let applyingRemote = false;
+    let syncTimer = null;
+    let lastCommandAt = 0;
+
+    function setStatus(message) {
+      $("status").textContent = message;
+    }
+
+    function addMessage(message, system = false) {
+      const div = document.createElement("div");
+      div.className = "message" + (system ? " system" : "");
+      div.textContent = message;
+      $("messages").appendChild(div);
+      $("messages").scrollTop = $("messages").scrollHeight;
+    }
+
+    function configIsValid() {
+      return firebaseConfig.apiKey !== "YOUR_API_KEY" &&
+        firebaseConfig.databaseURL.startsWith("https://") &&
+        firebaseConfig.projectId !== "YOUR_PROJECT";
+    }
+
+    $("connectBtn").addEventListener("click", async () => {
+      if (!configIsValid()) {
+        setStatus("पहले कोड में Firebase की असली config भरें।");
+        return;
+      }
+
+      const name = $("name").value.trim() || "दोस्त";
+      const room = $("room").value.trim();
+
+      if (!room) {
+        setStatus("Room ID डालें।");
+        return;
+      }
+
+      if (connected) {
+        setStatus("आप पहले से Connect हैं।");
+        return;
+      }
+
+      try {
+        setStatus("कनेक्ट हो रहा है...");
+
+        const app = initializeApp(firebaseConfig);
+        db = getDatabase(app);
+
+        roomRef = ref(db, "watchRooms/" + room);
+        chatRef = ref(db, "watchRooms/" + room + "/chat");
+
+        await set(ref(db, "watchRooms/" + room + "/members/" +
+          crypto.randomUUID()), {
+          name,
+          joinedAt: serverTimestamp()
+        });
+
+        connected = true;
+        $("connectBtn").disabled = true;
+
+        syncListener = onValue(
+          ref(db, "watchRooms/" + room + "/state"),
+          async snapshot => {
+            const state = snapshot.val();
+
+            if (!state) return;
+
+            if (state.url && $("videoUrl").value !== state.url) {
+              $("videoUrl").value = state.url;
+              if (video.dataset.url !== state.url) {
+                video.dataset.url = state.url;
+                video.src = state.url;
+                video.load();
+              }
+            }
+
+            if (state.commandAt && state.commandAt === lastCommandAt) {
+              return;
+            }
+
+            if (state.commandAt) {
+              lastCommandAt = state.commandAt;
+            }
+
+            applyingRemote = true;
+
+            try {
+              if (Number.isFinite(state.time) &&
+                  Math.abs(video.currentTime - state.time) > 1.2) {
+                if (video.readyState >= 1) {
+                  video.currentTime = Math.max(0, state.time);
+                } else {
+                  video.addEventListener("loadedmetadata", () => {
+                    video.currentTime = Math.max(0, state.time);
+                  }, { once: true });
+                }
+              }
+
+              if (state.action === "play") {
+                try {
+                  await video.play();
+                } catch {
+                  setStatus("वीडियो चलाने के लिए Play बटन दबाएँ।");
+                }
+              } else if (state.action === "pause") {
+                video.pause();
+              }
+
+              setStatus("कमरा जुड़ा हुआ है: " + room);
+            } finally {
+              setTimeout(() => {
+                applyingRemote = false;
+              }, 300);
+            }
+          }
+        );
+
+        chatListener = onChildAdded(chatRef, snapshot => {
+          const msg = snapshot.val();
+          if (!msg) return;
+
+          addMessage((msg.name || "दोस्त") + ": " + msg.text);
+        });
+
+        addMessage("चैट से कनेक्ट हो गए।", true);
+        setStatus("कनेक्ट हो गया! Room: " + room);
+
+      } catch (error) {
+        console.error(error);
+        setStatus("कनेक्शन विफल: Firebase config और Database जाँचें।");
+        connected = false;
+        $("connectBtn").disabled = false;
+      }
+    });
+
+    async function publishState(action, time = video.currentTime) {
+      if (!connected || !roomRef) {
+        setStatus("पहले Connect करें।");
+        return;
+      }
+
+      try {
+        await set(ref(db, "watchRooms/" + $("room").value.trim() +
+          "/state"), {
+          action,
+          time: Number.isFinite(time) ? time : 0,
+          url: $("videoUrl").value.trim(),
+          commandAt: Date.now(),
+          updatedAt: serverTimestamp()
+        });
+      } catch (error) {
+        console.error(error);
+        setStatus("Sync नहीं हुआ। इंटरनेट और Database Rules जाँचें।");
+      }
+    }
+
+    $("loadBtn").addEventListener("click", async () => {
+      const url = $("videoUrl").value.trim();
+
+      if (!url) {
+        setStatus("वीडियो URL डालें।");
+        return;
+      }
+
+      try {
+        const parsed = new URL(url);
+        if (!["https:", "http:"].includes(parsed.protocol)) {
+          throw new Error("Invalid URL");
+        }
+      } catch {
+        setStatus("सही वीडियो URL डालें।");
+        return;
+      }
+
+      video.src = url;
+      video.dataset.url = url;
+      video.load();
+
+      if (connected) {
+        await publishState("pause", 0);
+      } else {
+        setStatus("वीडियो लोड किया गया। अब Connect करें।");
+      }
+    });
+
+    $("playBtn").addEventListener("click", async () => {
+      try {
+        await video.play();
+        await publishState("play", video.currentTime);
+      } catch {
+        setStatus("पहले एक सही वीडियो URL लोड करें।");
+      }
+    });
+
+    $("pauseBtn").addEventListener("click", async () => {
+      video.pause();
+      await publishState("pause", video.currentTime);
+    });
+
+    $("seekBtn").addEventListener("click", async () => {
+      const time = Number($("seekTime").value);
+
+      if (!Number.isFinite(time) || time < 0) {
+        setStatus("समय सेकंड में डालें।");
+        return;
+      }
+
+      if (video.duration && time > video.duration) {
+        setStatus("यह समय वीडियो की अवधि से अधिक है।");
+        return;
+      }
+
+      video.currentTime = time;
+      await publishState(video.paused ? "pause" : "play", time);
+    });
+
+    video.addEventListener("seeked", () => {
+      if (!applyingRemote && connected) {
+        publishState(video.paused ? "pause" : "play",
+          video.currentTime);
+      }
+    });
+
+    video.addEventListener("play", () => {
+      if (!applyingRemote && connected) {
+        publishState("play", video.currentTime);
+      }
+    });
+
+    video.addEventListener("pause", () => {
+      if (!applyingRemote && connected) {
+        publishState("pause", video.currentTime);
+      }
+    });
+
+    $("sendBtn").addEventListener("click", async () => {
+      const text = $("chatInput").value.trim();
+
+      if (!connected || !chatRef) {
+        setStatus("चैट के लिए पहले Connect करें।");
+        return;
+      }
+
+      if (!text) return;
+
+      try {
+        await push(chatRef, {
+          name: $("name").value.trim() || "दोस्त",
+          text,
+          createdAt: serverTimestamp()
+        });
+
+        $("chatInput").value = "";
+      } catch (error) {
+        console.error(error);
+        setStatus("मैसेज नहीं भेजा गया। Database Rules जाँचें।");
+      }
+    });
+
+    $("chatInput").addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        $("sendBtn").click();
+      }
+    });
+
+    // समय का हल्का periodic correction.
+    // रियल-टाइम कमांड्स Firebase के जरिए जाती हैं।
+    video.addEventListener("timeupdate", () => {
+      if (!connected || applyingRemote || video.paused) return;
+
+      if (syncTimer) return;
+
+      syncTimer = setTimeout(() => {
+        syncTimer = null;
+      }, 3000);
+    });
+  </script>
+</body>
+        </html>
