@@ -255,9 +255,13 @@
     let currentUrl = "";
 
 
-    window.onYouTubeIframeAPIReady = () => {
-      youtubeReady = true;
-    };
+    if (window.YT && window.YT.Player) {
+  youtubeReady = true;
+}
+
+window.onYouTubeIframeAPIReady = () => {
+  youtubeReady = true;
+};
 
 
     function setStatus(message) {
