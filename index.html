@@ -420,91 +420,105 @@ window.onYouTubeIframeAPIReady = () => {
 
 
     async function loadYouTube(
-      url,
-      startTime = 0
+  url,
+  startTime = 0
+) {
+  const videoId = getYouTubeId(url);
+
+  if (!videoId) {
+    setStatus(
+      "Please enter a valid YouTube link."
+    );
+    return;
+  }
+
+  currentUrl = url;
+  showPlayer("youtube");
+
+  function createPlayer() {
+    if (
+      !window.YT ||
+      !window.YT.Player
     ) {
-      const videoId =
-        getYouTubeId(url);
+      setStatus(
+        "YouTube player is still loading. Please try again."
+      );
+      return;
+    }
 
-      if (!videoId) {
-        setStatus(
-          "Please enter a valid YouTube link."
-        );
+    if (player) {
+      player.loadVideoById({
+        videoId: videoId,
+        startSeconds: startTime
+      });
+      return;
+    }
 
-        return;
-      }
-
-      if (!youtubeReady) {
-        setStatus(
-          "YouTube player is loading. Please try again in a moment."
-        );
-
-        return;
-      }
-
-      currentUrl = url;
-
-      showPlayer("youtube");
-
-      if (player) {
-        player.loadVideoById({
-          videoId,
-          startSeconds: startTime
-        });
-
-        return;
-      }
-
-      player = new YT.Player(
-        "youtubePlayer",
-        {
-          videoId,
-          playerVars: {
-            playsinline: 1
+    player = new YT.Player(
+      "youtubePlayer",
+      {
+        width: "100%",
+        height: "100%",
+        videoId: videoId,
+        playerVars: {
+          playsinline: 1
+        },
+        events: {
+          onReady: event => {
+            if (startTime > 0) {
+              event.target.seekTo(
+                startTime,
+                true
+              );
+            }
+            setStatus(
+              "YouTube video loaded."
+            );
           },
 
-          events: {
-            onReady: event => {
-              if (startTime > 0) {
-                event.target.seekTo(
-                  startTime,
-                  true
-                );
-              }
-            },
+          onStateChange: event => {
+            if (
+              applyingRemote ||
+              !connected
+            ) {
+              return;
+            }
 
-            onStateChange: event => {
-              if (
-                applyingRemote ||
-                !connected
-              ) {
-                return;
-              }
+            if (
+              event.data ===
+              YT.PlayerState.PLAYING
+            ) {
+              publishState(
+                "play",
+                getCurrentTime()
+              );
+            }
 
-              if (
-                event.data ===
-                YT.PlayerState.PLAYING
-              ) {
-                publishState(
-                  "play",
-                  getCurrentTime()
-                );
-              }
-
-              if (
-                event.data ===
-                YT.PlayerState.PAUSED
-              ) {
-                publishState(
-                  "pause",
-                  getCurrentTime()
-                );
-              }
+            if (
+              event.data ===
+              YT.PlayerState.PAUSED
+            ) {
+              publishState(
+                "pause",
+                getCurrentTime()
+              );
             }
           }
         }
-      );
-    }
+      }
+    );
+  }
+
+  if (
+    window.YT &&
+    window.YT.Player
+  ) {
+    createPlayer();
+  } else {
+    window.onYouTubeIframeAPIReady =
+      createPlayer;
+  }
+}
 
 
     function loadDirectVideo(
