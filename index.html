@@ -1,1237 +1,335 @@
-<!DOCTYPE html><html lang="en">
+
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Watch Party 🎬</title>  <style>
+  <title>Watch Party</title>
+
+  <style>
     * {
       box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
     }
 
     body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, #30205f, transparent 35%),
-        radial-gradient(circle at bottom right, #25104d, transparent 35%),
-        #090a14;
+      background: #080b1d;
       color: white;
+      overflow: hidden;
     }
 
     .app {
-      width: 100%;
-      max-width: 760px;
+      height: 100dvh;
+      max-width: 900px;
       margin: auto;
-      padding: 12px;
-    }
-
-    .topbar {
+      padding: 10px;
       display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .logo {
-      width: 48px;
-      height: 48px;
-      border-radius: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      background: linear-gradient(135deg, #713cff, #a354ff);
-    }
-
-    .title-area {
-      flex: 1;
-      min-width: 0;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 24px;
-    }
-
-    h1 span {
-      color: #b183ff;
-    }
-
-    .room-info {
-      margin-top: 4px;
-      color: #bdb9cb;
-      font-size: 13px;
-    }
-
-    .online {
-      font-size: 12px;
-      white-space: nowrap;
-      color: #c8c5d5;
-    }
-
-    .online-dot {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      background: #24df71;
-      border-radius: 50%;
-      margin-right: 4px;
-    }
-
-    .card {
-      background: rgba(25, 26, 45, .95);
-      border: 1px solid #3b3c58;
-      border-radius: 18px;
-    }
-
-    .join-panel {
-      padding: 12px;
-      margin-bottom: 12px;
-    }
-
-    .join-title {
-      margin: 0 0 10px;
-      font-size: 15px;
-    }
-
-    .join-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr auto;
+      flex-direction: column;
       gap: 8px;
     }
 
-    input {
-      width: 100%;
-      min-width: 0;
-      padding: 12px;
-      border-radius: 11px;
-      border: 1px solid #474861;
-      background: #202133;
-      color: white;
-      font-size: 14px;
-      outline: none;
+    .header {
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
     }
 
-    input:focus {
-      border-color: #9865ff;
-    }
-
-    button {
-      border: none;
-      border-radius: 12px;
-      padding: 12px 16px;
-      color: white;
-      background: linear-gradient(135deg, #713cff, #a354ff);
-      font-size: 14px;
+    .brand {
+      font-size: 24px;
       font-weight: bold;
+    }
+
+    .brand span {
+      color: #b34cff;
+    }
+
+    .room {
+      font-size: 13px;
+      color: #bcb8cc;
+      margin-top: 3px;
+    }
+
+    .menu-btn {
+      border: 1px solid #6740a8;
+      background: #17132e;
+      color: white;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      font-size: 22px;
       cursor: pointer;
     }
-
-    button.secondary {
-      background: #34354a;
-    }
-
-    button:disabled {
-      opacity: .55;
-    }
-
-    #status {
-      margin: 9px 0 0;
-      text-align: center;
-      color: #f6c84b;
-      font-size: 12px;
-    }
-
-    .video-card {
-      overflow: hidden;
-      background: #05060b;
-      border: 1px solid #6848e8;
-      border-radius: 20px;
-    }
-
-    #videoPlaceholder {
-      aspect-ratio: 16 / 9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 30px;
-      color: #aaa7ba;
-      background: linear-gradient(135deg, #10111d, #070811);
-    }
-
-    video,
-    #youtubePlayer {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      background: black;
-      display: block;
-    }
-
-    #youtubePlayer {
-      display: none;
-    }
-
-    .video-tools {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .video-tools input {
-      flex: 1;
-    }
-
-    .sync-panel {
-      margin-top: 12px;
-      padding: 10px;
-    }
-
-    .sync-row {
-      display: flex;
-      gap: 8px;
-    }
-
-    .sync-row button {
-      flex: 1;
-    }
-
-    .seek-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .seek-row input {
-      flex: 1;
-    }
-
-    .members-section {
-      margin-top: 12px;
-      padding: 12px;
-    }
-
-    .section-title {
-      margin: 0 0 12px;
-      font-size: 15px;
-    }
-
-    .members {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 12px 5px;
-      text-align: center;
-    }
-
-    .member {
-      min-width: 0;
-    }
-
-    .avatar {
-      width: 48px;
-      height: 48px;
-      margin: auto;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #9b68ff, #263dff);
-      border: 2px solid #54e8ff;
-      font-size: 17px;
-      position: relative;
-    }
-
-    .avatar::after {
-      content: "";
-      position: absolute;
-      right: -2px;
-      bottom: 0;
-      width: 10px;
-      height: 10px;
-      background: #22e66d;
-      border: 2px solid #171827;
-      border-radius: 50%;
-    }
-
-    .member-name {
-      margin-top: 5px;
-      font-size: 11px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      color: #e9e7f0;
-    }
-
-    .chat-card {
-      margin-top: 12px;
-      overflow: hidden;
-    }
-
-    .chat-header {
-      padding: 12px;
-      background: rgba(113, 60, 255, .12);
-    }
-
-    .chat-header h2 {
-      margin: 0;
-      font-size: 17px;
-    }
-
-    #messages {
-      height: 145px;
-      overflow-y: auto;
-      padding: 10px 12px;
-      background: rgba(4, 5, 15, .5);
-    }
-
-    .message {
-      width: fit-content;
-      max-width: 90%;
-      padding: 9px 12px;
-      margin-bottom: 8px;
-      background: #292a45;
-      border-radius: 12px;
-      overflow-wrap: anywhere;
-    }
-
-    .system {
-      color: #b78cff;
-      background: transparent;
-      padding-left: 0;
-      font-size: 13px;
-    }
-
-    .chat-row {
-      display: flex;
-      gap: 8px;
-      padding: 10px;
-    }
-
-    .chat-row input {
-      flex: 1;
-    }
-
-    @media (max-width: 480px) {
-      .app {
-        padding: 9px;
-      }
-
-      .online {
-        display: none;
-      }
-
-      .join-row {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      #connectBtn {
-        grid-column: span 2;
-      }
-
-      .video-tools {
-        flex-direction: column;
-      }
-
-      .members {
-        gap: 10px 3px;
-      }
-
-      .avatar {
-        width: 42px;
-        height: 42px;
-      }
-    }
-  </style>
+</style>
 </head>
 
 <body>
   <div class="app">
 
-    <div class="topbar">
-      <div class="logo">🎬</div>
-
-      <div class="title-area">
-        <h1>Watch <span>Party</span></h1>
-        <div class="room-info">
-          Room: <strong id="roomDisplay">dost123</strong>
-        </div>
+    <div class="header">
+      <div>
+        <div class="brand">🎬 Watch <span>Party</span></div>
+        <div class="room" id="roomText">Room: Not connected</div>
       </div>
 
-      <div class="online">
-        <span class="online-dot"></span>
-        Together
+      <button class="menu-btn">⋮</button>
+    </div>
+
+    <div class="video-box">
+      <div class="empty-video" id="emptyVideo">
+        <h2>Ready to Watch?</h2>
+        <p>Add a video to start your Watch Party.</p>
+        <button class="add-btn" onclick="addVideo()">＋ Add Video</button>
+      </div>
+
+      <video id="video" playsinline></video>
+
+      <div class="video-controls">
+        <button class="control" onclick="skip(-10)">⏪</button>
+        <button class="control" onclick="togglePlay()" id="playBtn">▶</button>
+        <button class="control" onclick="skip(10)">⏩</button>
+        <button class="control sync-btn" onclick="syncVideo()">↻ Sync</button>
+        <button class="control" onclick="fullScreen()">⛶</button>
       </div>
     </div>
 
-    <div class="card join-panel">
-      <p class="join-title">Join the Room</p>
+    <style>
+      .video-box {
+        flex: 1;
+        min-height: 180px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 18px;
+        background: #000;
+        border: 1px solid #7a38d4;
+      }
 
-      <div class="join-row">
-        <input id="name" placeholder="Your name" maxlength="30">
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
 
+      .empty-video {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #15122e, #050713);
+        color: #c7c1d5;
+        text-align: center;
+        gap: 12px;
+      }
+
+      .add-btn {
+        border: none;
+        background: linear-gradient(90deg, #7228ff, #a83cff);
+        color: white;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .video-controls {
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px;
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.7);
+      }
+
+      .control {
+        min-width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 1px solid #8b65c7;
+        background: #21173b;
+        color: white;
+        font-size: 17px;
+        cursor: pointer;
+      }
+
+      .sync-btn {
+        width: auto;
+        padding: 0 13px;
+        border-radius: 22px;
+      }
+    </style>
+
+    <div class="chat">
+      <div class="chat-header">💬 Live Chat</div>
+
+      <div id="messages">
+        <div class="message">Welcome to Watch Party! 👋</div>
+      </div>
+
+      <div class="chat-input">
         <input
-          id="room"
-          placeholder="Room ID"
-          maxlength="60"
-          value="dost123">
-
-        <button id="connectBtn">Connect</button>
-      </div>
-
-      <p id="status">
-        Connect to the room to start watching together.
-      </p>
-    </div>
-
-    <div class="video-card">
-      <div id="videoPlaceholder">
-        🎬<br><br>
-        Add a YouTube or direct video link to start.
-      </div>
-
-      <video
-        id="video"
-        controls
-        playsinline
-        preload="metadata"
-        style="display:none">
-      </video>
-
-      <div id="youtubePlayer"></div>
-    </div>
-
-    <div class="video-tools">
-      <input
-        id="videoUrl"
-        placeholder="Paste YouTube or direct video link">
-
-      <button id="loadBtn">Add Video</button>
-    </div>
-
-    <div class="controls-card">
-      <button id="playBtn">▶ Play & Sync</button>
-
-      <button id="pauseBtn" class="secondary">
-        ⏸ Pause & Sync
-      </button>
-
-      <div class="seek-row">
-        <input
-          id="seekTime"
-          type="number"
-          min="0"
-          step="1"
-          placeholder="Time in seconds">
-
-        <button id="seekBtn">Seek</button>
+          id="messageInput"
+          type="text"
+          placeholder="Type a message..."
+          onkeydown="if(event.key === 'Enter') sendMessage()"
+        >
+        <button class="send-btn" onclick="sendMessage()">Send</button>
       </div>
     </div>
 
-    <div class="card members-section">
-      <h2 class="section-title">
-        People in this Room
-      </h2>
-
-      <div class="members">
-        <div class="member">
-          <div class="avatar">👤</div>
-          <div class="member-name">Sangram</div>
-        </div>
-
-        <div class="member">
-          <div class="avatar">👤</div>
-          <div class="member-name">Friend</div>
-        </div>
-
-        <div class="member">
-          <div class="avatar">👤</div>
-          <div class="member-name">Friend 3</div>
-        </div>
-
-        <div class="member">
-          <div class="avatar">👤</div>
-          <div class="member-name">Friend 4</div>
-        </div>
-
-        <div class="member">
-          <div class="avatar">👤</div>
-          <div class="member-name">Friend 5</div>
-        </div>
-
-        <div class="member">
-          <div class="avatar">👤</div>
-          <div class="member-name">Friend 6</div>
-        </div>
-
-        <div class="member">
-          <div class="avatar">👤</div>
-          <div class="member-name">Friend 7</div>
-        </div>
-
-        <div class="member">
-          <div class="avatar">👤</div>
-          <div class="member-name">Friend 8</div>
-        </div>
-
-        <div class="member">
-          <div class="avatar">👤</div>
-          <div class="member-name">Friend 9</div>
-        </div>
-
-        <div class="member">
-          <div class="avatar">👤</div>
-          <div class="member-name">Friend 10</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card chat-card">
-      <div class="chat-header">
-        <h2>💬 Live Chat</h2>
-      </div>
-
-      <div id="messages"></div>
-
-      <div class="chat-row">
-        <input
-          id="chatInput"
-          placeholder="Write a message..."
-          maxlength="1000">
-
-        <button id="sendBtn">Send</button>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- YouTube Player API -->
-  <script src="https://www.youtube.com/iframe_api"></script>
-
-  <script type="module">
-
-    import { initializeApp }
-      from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-
-    import {
-      getDatabase,
-      ref,
-      set,
-      onValue,
-      push,
-      onChildAdded,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAk280-D-y7IuRltK2j7hWlhGnCaSCFLXY",
-      authDomain: "watch-party-f30a3.firebaseapp.com",
-      databaseURL: "https://watch-party-f30a3-default-rtdb.firebaseio.com",
-      projectId: "watch-party-f30a3",
-      storageBucket: "watch-party-f30a3.firebasestorage.app",
-      messagingSenderId: "694842881570",
-      appId: "1:694842881570:web:1ff85754e84ba7f0397c7b"
-    };
-
-    const $ = id => document.getElementById(id);
-    const video = $("video");
-
-    let db = null;
-    let chatRef = null;
-    let connected = false;
-    let applyingRemote = false;
-    let lastCommandAt = 0;
-    let player = null;
-    let currentType = "video";
-    let currentUrl = "";
-
-    function setStatus(message) {
-      $("status").textContent = message;
-    }
-
-    function updateRoomDisplay() {
-      const room = $("room").value.trim() || "dost123";
-      $("roomDisplay").textContent = room;
-    }
-
-    $("room").addEventListener(
-      "input",
-      updateRoomDisplay
-    );
-
-    function addMessage(message, system = false) {
-      const div = document.createElement("div");
-      div.className =
-        "message" + (system ? " system" : "");
-      div.textContent = message;
-      $("messages").appendChild(div);
-      $("messages").scrollTop =
-        $("messages").scrollHeight;
-    }
-
-    function getYouTubeId(url) {
-      try {
-        const parsed = new URL(url);
-
-        if (parsed.hostname.includes("youtu.be")) {
-          return parsed.pathname.split("/")[1] || null;
-        }
-
-        if (parsed.hostname.includes("youtube.com")) {
-          const id = parsed.searchParams.get("v");
-          if (id) return id;
-
-          const parts = parsed.pathname.split("/");
-          const embedIndex = parts.indexOf("embed");
-
-          if (
-            embedIndex !== -1 &&
-            parts[embedIndex + 1]
-          ) {
-            return parts[embedIndex + 1];
-          }
-
-          const shortsIndex = parts.indexOf("shorts");
-
-          if (
-            shortsIndex !== -1 &&
-            parts[shortsIndex + 1]
-          ) {
-            return parts[shortsIndex + 1];
-          }
-        }
-
-        return null;
-      } catch {
-        return null;
-      }
-    }
-
-    function showPlayer(type) {
-      currentType = type;
-      const placeholder = $("videoPlaceholder");
-
-      if (type === "youtube") {
-        video.pause();
-        video.style.display = "none";
-        placeholder.style.display = "none";
-        $("youtubePlayer").style.display = "block";
-      } else {
-        $("youtubePlayer").style.display = "none";
-        placeholder.style.display = "none";
-        video.style.display = "block";
-      }
-    }
-
-    function getCurrentTime() {
-      if (
-        currentType === "youtube" &&
-        player &&
-        typeof player.getCurrentTime === "function"
-      ) {
-        return player.getCurrentTime() || 0;
+    <style>
+      .chat {
+        height: 185px;
+        background: #101126;
+        border: 1px solid #5f3a9b;
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
 
-      return Number.isFinite(video.currentTime)
-        ? video.currentTime
-        : 0;
-    }
-
-    function isPaused() {
-      if (
-        currentType === "youtube" &&
-        player &&
-        typeof player.getPlayerState === "function"
-      ) {
-        return player.getPlayerState() !==
-          YT.PlayerState.PLAYING;
+      .chat-header {
+        padding: 10px 14px;
+        font-weight: bold;
+        border-bottom: 1px solid #30264b;
       }
 
-      return video.paused;
-    }
-
-    function publishState(
-      action,
-      time = getCurrentTime()
-    ) {
-      if (!connected || !db) {
-        setStatus("Connect to a room first.");
-        return Promise.resolve();
+      #messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 12px;
       }
 
-      const room = $("room").value.trim();
-
-      if (!room) return Promise.resolve();
-
-      return set(
-        ref(db, "watchRooms/" + room + "/state"),
-        {
-          action,
-          time: Number.isFinite(time) ? time : 0,
-          url: currentUrl ||
-            $("videoUrl").value.trim(),
-          type: currentType,
-          commandAt: Date.now(),
-          updatedAt: serverTimestamp()
-        }
-      ).catch(error => {
-        console.error(error);
-        setStatus(
-          "Sync failed. Check your internet connection."
-        );
-      });
-    }
-
-    async function loadYouTube(url, startTime = 0) {
-      const videoId = getYouTubeId(url);
-
-      if (!videoId) {
-        setStatus(
-          "Please enter a valid YouTube link."
-        );
-        return;
+      .message {
+        background: #2b2347;
+        width: fit-content;
+        max-width: 85%;
+        padding: 7px 11px;
+        margin-bottom: 6px;
+        border-radius: 10px;
+        font-size: 14px;
+        word-break: break-word;
       }
 
-      currentUrl = url;
-      showPlayer("youtube");
-
-      function createPlayer() {
-        if (!window.YT || !window.YT.Player) {
-          setStatus(
-            "YouTube player is loading. Please try again."
-          );
-          return;
-        }
-
-        if (player) {
-          player.loadVideoById({
-            videoId,
-            startSeconds: startTime
-          });
-          return;
-        }
-
-        player = new YT.Player(
-          "youtubePlayer",
-          {
-            width: "100%",
-            height: "100%",
-            videoId,
-            playerVars: {
-              playsinline: 1
-            },
-            events: {
-              onReady: event => {
-                if (startTime > 0) {
-                  event.target.seekTo(
-                    startTime,
-                    true
-                  );
-                }
-
-                setStatus("YouTube video loaded.");
-              },
-
-              onStateChange: event => {
-                if (applyingRemote || !connected) {
-                  return;
-                }
-
-                if (
-                  event.data ===
-                  YT.PlayerState.PLAYING
-                ) {
-                  publishState(
-                    "play",
-                    getCurrentTime()
-                  );
-                }
-
-                if (
-                  event.data ===
-                  YT.PlayerState.PAUSED
-                ) {
-                  publishState(
-                    "pause",
-                    getCurrentTime()
-                  );
-                }
-              }
-            }
-          }
-        );
+      .chat-input {
+        display: flex;
+        gap: 6px;
+        padding: 8px;
+        border-top: 1px solid #30264b;
       }
 
-      if (window.YT && window.YT.Player) {
-        createPlayer();
-      } else {
-        window.onYouTubeIframeAPIReady =
-          createPlayer;
+      .chat-input input {
+        flex: 1;
+        min-width: 0;
+        background: #080919;
+        color: white;
+        border: 1px solid #51406f;
+        border-radius: 10px;
+        padding: 10px;
+        outline: none;
       }
-    }
 
-    function loadDirectVideo(
-      url,
-      startTime = 0
-    ) {
-      currentUrl = url;
-      showPlayer("video");
+      .send-btn {
+        border: none;
+        background: #7b2cff;
+        color: white;
+        border-radius: 10px;
+        padding: 0 15px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+    </style>
 
-      if (video.dataset.url !== url) {
-        video.dataset.url = url;
+    <script>
+      const video = document.getElementById("video");
+      const emptyVideo = document.getElementById("emptyVideo");
+      const playBtn = document.getElementById("playBtn");
+
+      function addVideo() {
+        const url = prompt("Paste your direct video link:");
+
+        if (!url) return;
+
         video.src = url;
+        emptyVideo.style.display = "none";
         video.load();
       }
 
-      if (startTime > 0) {
-        video.addEventListener(
-          "loadedmetadata",
-          () => {
-            video.currentTime = startTime;
-          },
-          { once: true }
-        );
-      }
-    }
-
-    async function loadUrl(
-      url,
-      startTime = 0
-    ) {
-      const youtubeId = getYouTubeId(url);
-
-      if (youtubeId) {
-        await loadYouTube(url, startTime);
-      } else {
-        loadDirectVideo(url, startTime);
-      }
-    }
-
-    $("connectBtn").addEventListener(
-      "click",
-      async () => {
-        const name =
-          $("name").value.trim() || "Friend";
-
-        const room =
-          $("room").value.trim();
-
-        if (!room) {
-          setStatus("Please enter a Room ID.");
+      function togglePlay() {
+        if (!video.src) {
+          alert("Please add a video first.");
           return;
         }
 
-        if (connected) {
-          setStatus("You are already connected.");
-          return;
-        }
-
-        try {
-          setStatus("Connecting...");
-
-          const app =
-            initializeApp(firebaseConfig);
-
-          db = getDatabase(app);
-
-          chatRef = ref(
-            db,
-            "watchRooms/" + room + "/chat"
-          );
-
-          await set(
-            ref(
-              db,
-              "watchRooms/" +
-              room +
-              "/members/" +
-              crypto.randomUUID()
-            ),
-            {
-              name,
-              joinedAt: serverTimestamp()
-            }
-          );
-
-          connected = true;
-
-          $("connectBtn").disabled = true;
-          $("connectBtn").textContent = "Connected";
-
-          updateRoomDisplay();
-
-          onValue(
-            ref(
-              db,
-              "watchRooms/" +
-              room +
-              "/state"
-            ),
-            async snapshot => {
-              const state = snapshot.val();
-
-              if (!state) return;
-
-              if (
-                state.commandAt &&
-                state.commandAt === lastCommandAt
-              ) {
-                return;
-              }
-
-              if (state.commandAt) {
-                lastCommandAt = state.commandAt;
-              }
-
-              applyingRemote = true;
-
-              try {
-                if (
-                  state.url &&
-                  state.url !== currentUrl
-                ) {
-                  $("videoUrl").value = state.url;
-
-                  await loadUrl(
-                    state.url,
-                    state.time || 0
-                  );
-                }
-
-                const targetTime =
-                  Number(state.time) || 0;
-
-                if (
-                  currentType === "youtube" &&
-                  player
-                ) {
-                  if (
-                    Math.abs(
-                      getCurrentTime() - targetTime
-                    ) > 1.5
-                  ) {
-                    player.seekTo(
-                      targetTime,
-                      true
-                    );
-                  }
-
-                  if (state.action === "play") {
-                    player.playVideo();
-                  } else if (
-                    state.action === "pause"
-                  ) {
-                    player.pauseVideo();
-                  }
-
-                } else if (
-                  currentType === "video"
-                ) {
-                  if (
-                    Math.abs(
-                      video.currentTime - targetTime
-                    ) > 1.5 &&
-                    video.readyState >= 1
-                  ) {
-                    video.currentTime = targetTime;
-                  }
-
-                  if (state.action === "play") {
-                    try {
-                      await video.play();
-                    } catch {
-                      setStatus(
-                        "Press Play to start the video."
-                      );
-                    }
-                  } else if (
-                    state.action === "pause"
-                  ) {
-                    video.pause();
-                  }
-                }
-
-                setStatus(
-                  "Connected! Room: " + room
-                );
-
-              } finally {
-                setTimeout(() => {
-                  applyingRemote = false;
-                }, 500);
-              }
-            }
-          );
-
-          onChildAdded(
-            chatRef,
-            snapshot => {
-              const msg = snapshot.val();
-
-              if (!msg) return;
-
-              addMessage(
-                (msg.name || "Friend") +
-                ": " +
-                msg.text
-              );
-            }
-          );
-
-          addMessage(
-            "Chat connected.",
-            true
-          );
-
-          setStatus(
-            "Connected! Room: " + room
-          );
-
-        } catch (error) {
-          console.error(error);
-
-          setStatus(
-            "Connection failed. Check Firebase configuration and Database Rules."
-          );
-
-          connected = false;
-          $("connectBtn").disabled = false;
-          $("connectBtn").textContent = "Connect";
-        }
-      }
-    );
-
-    $("loadBtn").addEventListener(
-      "click",
-      async () => {
-        const url =
-          $("videoUrl").value.trim();
-
-        if (!url) {
-          setStatus(
-            "Please enter a video link."
-          );
-          return;
-        }
-
-        try {
-          const parsed = new URL(url);
-
-          if (
-            !["https:", "http:"].includes(
-              parsed.protocol
-            )
-          ) {
-            throw new Error();
-          }
-        } catch {
-          setStatus(
-            "Please enter a valid link."
-          );
-          return;
-        }
-
-        await loadUrl(url, 0);
-
-        if (connected) {
-          await publishState("pause", 0);
-          setStatus(
-            "Video loaded and synced."
-          );
-        } else {
-          setStatus(
-            "Video loaded. Now connect to the room."
-          );
-        }
-      }
-    );
-
-    $("playBtn").addEventListener(
-      "click",
-      async () => {
-        try {
-          if (currentType === "youtube") {
-            if (!player) {
-              setStatus(
-                "Load a YouTube video first."
-              );
-              return;
-            }
-
-            player.playVideo();
-          } else {
-            await video.play();
-          }
-
-          await publishState(
-            "play",
-            getCurrentTime()
-          );
-
-        } catch {
-          setStatus(
-            "Please load a valid video first."
-          );
-        }
-      }
-    );
-
-    $("pauseBtn").addEventListener(
-      "click",
-      async () => {
-        if (
-          currentType === "youtube" &&
-          player
-        ) {
-          player.pauseVideo();
+        if (video.paused) {
+          video.play();
         } else {
           video.pause();
         }
+      }
 
-        await publishState(
-          "pause",
-          getCurrentTime()
+      function skip(seconds) {
+        if (!video.src) return;
+
+        video.currentTime = Math.max(
+          0,
+          video.currentTime + seconds
         );
       }
-    );
 
-    $("seekBtn").addEventListener(
-      "click",
-      async () => {
-        const time =
-          Number($("seekTime").value);
-
-        if (
-          !Number.isFinite(time) ||
-          time < 0
-        ) {
-          setStatus(
-            "Enter time in seconds."
-          );
+      function syncVideo() {
+        if (!video.src) {
+          alert("Please add a video first.");
           return;
         }
 
-        if (
-          currentType === "youtube" &&
-          player
-        ) {
-          player.seekTo(time, true);
-        } else {
-          if (
-            video.duration &&
-            time > video.duration
-          ) {
-            setStatus(
-              "This time is longer than the video."
-            );
-            return;
-          }
-
-          video.currentTime = time;
-        }
-
-        await publishState(
-          isPaused() ? "pause" : "play",
-          time
-        );
+        alert("Firebase sync will be added next.");
       }
-    );
 
-    video.addEventListener(
-      "play",
-      () => {
-        if (
-          !applyingRemote &&
-          connected &&
-          currentType === "video"
-        ) {
-          publishState(
-            "play",
-            video.currentTime
-          );
+      function fullScreen() {
+        const videoBox = document.querySelector(".video-box");
+
+        if (videoBox.requestFullscreen) {
+          videoBox.requestFullscreen();
         }
       }
-    );
 
-    video.addEventListener(
-      "pause",
-      () => {
-        if (
-          !applyingRemote &&
-          connected &&
-          currentType === "video"
-        ) {
-          publishState(
-            "pause",
-            video.currentTime
-          );
-        }
-      }
-    );
+      video.addEventListener("play", function () {
+        playBtn.textContent = "⏸";
+      });
 
-    video.addEventListener(
-      "seeked",
-      () => {
-        if (
-          !applyingRemote &&
-          connected &&
-          currentType === "video"
-        ) {
-          publishState(
-            video.paused ? "pause" : "play",
-            video.currentTime
-          );
-        }
-      }
-    );
+      video.addEventListener("pause", function () {
+        playBtn.textContent = "▶";
+      });
 
-    $("sendBtn").addEventListener(
-      "click",
-      async () => {
-        const text =
-          $("chatInput").value.trim();
-
-        if (!connected || !chatRef) {
-          setStatus(
-            "Connect to a room before using chat."
-          );
-          return;
-        }
+      function sendMessage() {
+        const input = document.getElementById("messageInput");
+        const text = input.value.trim();
 
         if (!text) return;
 
-        try {
-          await push(
-            chatRef,
-            {
-              name:
-                $("name").value.trim() ||
-                "Friend",
-              text,
-              createdAt: serverTimestamp()
-            }
-          );
+        const messages = document.getElementById("messages");
+        const message = document.createElement("div");
 
-          $("chatInput").value = "";
+        message.className = "message";
+        message.textContent = text;
 
-        } catch (error) {
-          console.error(error);
-
-          setStatus(
-            "Message was not sent. Check Database Rules."
-          );
-        }
+        messages.appendChild(message);
+        messages.scrollTop = messages.scrollHeight;
+        input.value = "";
       }
-    );
+    </script>
 
-    $("chatInput").addEventListener(
-      "keydown",
-      event => {
-        if (event.key === "Enter") {
-          $("sendBtn").click();
-        }
-      }
-    );
-  </script>
+  </div>
 </body>
 </html>
